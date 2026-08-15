@@ -1,0 +1,35 @@
+# IDE and editor state
+.vscode/
+.idea/
+*.user
+*.suo
+*.code-workspace
+
+# Build products and generated binaries
+build/
+Debug/
+Release/
+*.elf
+*.hex
+*.bin
+*.map
+*.o
+*.obj
+*.d
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# KiCad generated/temporary files (source files remain tracked)
+*-backups/
+_autosave-*
+*.lck
+*.kicad_prl
+*.kicad_sch-bak
+
+# OS metadata
+.DS_Store
+Thumbs.db

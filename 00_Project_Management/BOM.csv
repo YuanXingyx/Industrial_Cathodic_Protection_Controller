@@ -1,0 +1,23 @@
+ID,Category,Part,Specification,Manufacturer,MPN,Quantity,Stage,Status,Notes
+BOM-001,Controller,STM32F103 Development Board,Exact board TBD,TBD,TBD,1,V0,Planned,Confirm schematic before pin assignment
+BOM-002,Prototyping,Breadboard,TBD,TBD,TBD,1,V0,Planned,
+BOM-003,Communication,USB UART,3.3 V logic compatible,TBD,TBD,1,V0,Planned,
+BOM-004,Passive,10k potentiometer,10 kOhm,TBD,TBD,1,V0,Planned,ADC input source
+BOM-005,Passive,1k resistor,1 kOhm,TBD,TBD,TBD,V0,Planned,
+BOM-006,Passive,10k resistor,10 kOhm,TBD,TBD,TBD,V0,Planned,
+BOM-007,Passive,100k resistor,100 kOhm,TBD,TBD,TBD,V0,Planned,
+BOM-008,Passive,100nF capacitor,100 nF,TBD,TBD,TBD,V0,Planned,
+BOM-009,Passive,1uF capacitor,1 uF,TBD,TBD,TBD,V0,Planned,
+BOM-010,Passive,10uF capacitor,10 uF,TBD,TBD,TBD,V0,Planned,
+BOM-011,Indicator,LED,TBD,TBD,TBD,TBD,V0,Planned,
+BOM-012,Interconnect,Pin headers,TBD,TBD,TBD,TBD,V0,Planned,
+BOM-013,Interconnect,Jumper wires,TBD,TBD,TBD,TBD,V0,Planned,
+BOM-101,Analog,Operational amplifier,OPA197 / TLV9062 / MCP6002 candidate,TBD,TBD,TBD,Future,Evaluation,Do not select before requirements
+BOM-102,Sensing,Current-sense amplifier,INA180 / INA181 candidate,TBD,TBD,TBD,Future,Evaluation,
+BOM-103,Communication,RS485 transceiver,MAX3485 / SP3485 candidate,TBD,TBD,TBD,Future,Evaluation,
+BOM-104,Power,MOSFET,Low-voltage only,TBD,TBD,TBD,Future,Evaluation,
+BOM-105,Sensing,Shunt resistor,Range TBD,TBD,TBD,TBD,Future,Evaluation,
+BOM-106,Protection,TVS,TBD,TBD,TBD,TBD,Future,Evaluation,
+BOM-107,Protection,Schottky diode,TBD,TBD,TBD,TBD,Future,Evaluation,
+BOM-108,Protection,Fuse,TBD,TBD,TBD,TBD,Future,Evaluation,
+BOM-109,Interconnect,Terminal block,TBD,TBD,TBD,TBD,Future,Evaluation,
