@@ -44,18 +44,24 @@ ELF target directly then returned exit code 0 (`up to date`). This is recorded
 as a local command-line build-tool behavior, not as hardware verification.
 
 ## Hardware Result
+
 PASS
 
 Observed:
-"TEST-001 UART OK" received continuously at approximately 500 ms intervals.
+`TEST-001 UART OK` was received continuously at approximately 500 ms intervals.
 
-Serial:
-115200, 8N1, No Flow Control
+Serial Configuration:
+
+- 115200 baud
+- 8 data bits
+- No parity
+- 1 stop bit
+- No flow control
 
 Note:
-A short burst of invalid characters was observed during initial connection/reset.
-Normal UART output was stable afterward.
-Not Tested - requires physical UART verification
+
+A short burst of invalid characters was observed during initial serial
+connection/reset. Normal UART output was stable afterward.
 
 ## Evidence
 

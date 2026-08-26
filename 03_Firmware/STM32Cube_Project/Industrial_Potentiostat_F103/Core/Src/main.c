@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +45,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static const uint8_t uart_test_msg[] = "TEST-001 UART OK\r\n";
+static uint32_t adc_raw;
+static char uart_buf[32];
+static const uint8_t adc_error_msg[] = "ADC_ERROR\r\n";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,6 +94,10 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  if (HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
+  {
+      Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -101,10 +107,35 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    (void)HAL_UART_Transmit(&huart1,
-                            (uint8_t *)uart_test_msg,
-                            (uint16_t)(sizeof(uart_test_msg) - 1U),
-                            100U);
+    HAL_StatusTypeDef adc_status = HAL_ADC_Start(&hadc1);
+
+    if (adc_status == HAL_OK)
+    {
+      adc_status = HAL_ADC_PollForConversion(&hadc1, 100U);
+    }
+
+    if (adc_status == HAL_OK)
+    {
+      int uart_len;
+
+      adc_raw = HAL_ADC_GetValue(&hadc1);
+      (void)HAL_ADC_Stop(&hadc1);
+      uart_len = snprintf(uart_buf, sizeof(uart_buf),
+                          "ADC_RAW=%lu\r\n", (unsigned long)adc_raw);
+
+      if ((uart_len > 0) && ((size_t)uart_len < sizeof(uart_buf)))
+      {
+        (void)HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf,
+                                (uint16_t)uart_len, 100U);
+      }
+    }
+    else
+    {
+      (void)HAL_ADC_Stop(&hadc1);
+      (void)HAL_UART_Transmit(&huart1, (uint8_t *)adc_error_msg,
+                              (uint16_t)(sizeof(adc_error_msg) - 1U), 100U);
+    }
+
     HAL_Delay(500U);
   }
   /* USER CODE END 3 */

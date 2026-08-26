@@ -1,6 +1,6 @@
 # Industrial Cathodic Protection Controller
 
-工业阴极保护恒电位控制器原型。该仓库面向真实工程学习与求职作品集，保存需求、设计、固件、测试、问题、波形和面试材料；当前只完成项目初始化，所有实验结果均为 `Not Tested`。
+工业阴极保护恒电位控制器原型。该仓库面向真实工程学习与求职作品集，保存需求、设计、固件、测试、问题、波形和面试材料。当前已完成 Day 1 UART 与 ADC RAW 基础硬件验证；其余实验状态按模块记录。
 
 ## 1. Project Overview
 
@@ -76,8 +76,12 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | Module | Status |
 |---|---|
 | Project structure | Initialized |
-| ADC acquisition | Planned / Not Tested |
-| UART debug | Planned / Not Tested |
+| UART basic output | PASS — hardware verified |
+| ADC GND endpoint | PASS — hardware verified |
+| ADC full-scale endpoint | PASS — hardware verified after startup calibration |
+| ADC potentiometer sweep | PASS — hardware verified |
+| ADC accuracy | Not Tested |
+| ADC linearity | Not Tested |
 | PWM output | Planned / Not Tested |
 | Dummy load | Planned / Not Tested |
 | P controller | Planned / Not Tested |
