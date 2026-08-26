@@ -1,21 +1,17 @@
-15:21:37 **** Incremental Build of configuration Debug for project Industrial_Potentiostat_F103 ****
+15:32:47 **** Build of configuration Debug for project Industrial_Potentiostat_F103 ****
 make -j12 all 
 arm-none-eabi-size  Industrial_Potentiostat_F103.elf 
+arm-none-eabi-objdump -h -S Industrial_Potentiostat_F103.elf  > "Industrial_Potentiostat_F103.list"
    text	   data	    bss	    dec	    hex	filename
-   6872	     12	   1692	   8576	   2180	Industrial_Potentiostat_F103.elf
+   7644	     12	   1692	   9348	   2484	Industrial_Potentiostat_F103.elf
 Finished building: default.size.stdout
  
-15:22:01 **** Incremental Build of configuration Debug for project Industrial_Potentiostat_F103 ****
-make -j12 all 
-arm-none-eabi-size  Industrial_Potentiostat_F103.elf 
-   text	   data	    bss	    dec	    hex	filename
-   6872	     12	   1692	   8576	   2180	Industrial_Potentiostat_F103.elf
-Finished building: default.size.stdout
+Finished building: Industrial_Potentiostat_F103.list
  
-15:22:24 **** Incremental Build of configuration Debug for project Industrial_Potentiostat_F103 ****
+15:32:51 **** Incremental Build of configuration Debug for project Industrial_Potentiostat_F103 ****
 make -j12 all 
 arm-none-eabi-size  Industrial_Potentiostat_F103.elf 
    text	   data	    bss	    dec	    hex	filename
-   6872	     12	   1692	   8576	   2180	Industrial_Potentiostat_F103.elf
+   7644	     12	   1692	   9348	   2484	Industrial_Potentiostat_F103.elf
 Finished building: default.size.stdout
  

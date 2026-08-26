@@ -1,10 +1,10 @@
-15:22:24 **** Incremental Build of configuration Debug for project Industrial_Potentiostat_F103 ****
+15:32:51 **** Incremental Build of configuration Debug for project Industrial_Potentiostat_F103 ****
 make -j12 all 
 arm-none-eabi-size  Industrial_Potentiostat_F103.elf 
    text	   data	    bss	    dec	    hex	filename
-   6872	     12	   1692	   8576	   2180	Industrial_Potentiostat_F103.elf
+   7644	     12	   1692	   9348	   2484	Industrial_Potentiostat_F103.elf
 Finished building: default.size.stdout
  
 
-15:22:25 Build Finished. 0 errors, 0 warnings. (took 304ms)
+15:32:51 Build Finished. 0 errors, 0 warnings. (took 303ms)
 

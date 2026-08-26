@@ -45,7 +45,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+static const uint8_t uart_test_msg[] = "TEST-001 UART OK\r\n";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,6 +101,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    (void)HAL_UART_Transmit(&huart1,
+                            (uint8_t *)uart_test_msg,
+                            (uint16_t)(sizeof(uart_test_msg) - 1U),
+                            100U);
+    HAL_Delay(500U);
   }
   /* USER CODE END 3 */
 }

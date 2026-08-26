@@ -37,3 +37,100 @@ COM5
 
 !ENTRY org.eclipse.cdt.core 1 0 2026-08-26 15:21:02.441
 !MESSAGE Indexed 'Industrial_Potentiostat_F103' (23 sources, 112 headers) in 1.62 sec: 8,301 declarations; 37,196 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
+
+!ENTRY org.eclipse.cdt.core 4 0 2026-08-26 15:27:41.832
+!MESSAGE Unexpected overload for binary operator 28: 'operator =='
+
+!ENTRY org.eclipse.cdt.core 4 0 2026-08-26 15:27:41.841
+!MESSAGE Unexpected overload for binary operator 28: 'operator =='
+
+!ENTRY org.eclipse.cdt.core 4 0 2026-08-26 15:27:41.855
+!MESSAGE Unexpected overload for binary operator 28: 'operator =='
+
+!ENTRY org.eclipse.cdt.core 4 0 2026-08-26 15:27:41.859
+!MESSAGE Unexpected overload for binary operator 28: 'operator =='
+
+!ENTRY org.eclipse.cdt.core 4 0 2026-08-26 15:27:41.862
+!MESSAGE Unexpected overload for binary operator 28: 'operator =='
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-08-26 15:27:45.122
+!MESSAGE Indexed 'MotorTinyML_F103' (39 sources, 467 headers) in 12.2 sec: 69,149 declarations; 198,121 references; 2 unresolved inclusions; 66 syntax errors; 270 unresolved names (0.1%)
+!SESSION 2026-08-26 15:30:07.974 -----------------------------------------------
+eclipse.buildId=Version 2.2.0
+java.version=21.0.10
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=zh_CN
+Framework arguments:  E:\project\Industrial_Potentiostat\03_Firmware\STM32Cube_Project\Industrial_Potentiostat_F103\.project
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 E:\project\Industrial_Potentiostat\03_Firmware\STM32Cube_Project\Industrial_Potentiostat_F103\.project
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-08-26 15:30:20.546
+!MESSAGE Log4j2 initialized with config file E:\project\Industrial_Potentiostat\workspace\.metadata\.log4j2.xml
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:30:22.947
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:30:22.948
+!MESSAGE System property http.proxyPort is set to 9567 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:30:22.948
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:30:22.949
+!MESSAGE System property https.proxyPort is set to 9567 but should not be set.
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-08-26 15:30:24.825
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-08-26 15:30:26.298
+!MESSAGE Indexed 'Industrial_Potentiostat_F103' (23 sources, 112 headers) in 1.05 sec: 8,302 declarations; 37,204 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
+
+!ENTRY com.st.stm32cube.ide.mpu.remote.serial 1 1 2026-08-26 15:30:30.783
+!MESSAGE Executed PowerShell command powershell.exe -Command "Get-CimInstance -ClassName Win32_SerialPort | Select-Object -ExpandProperty DeviceID":
+COM6
+COM5
+
+
+!ENTRY com.st.stm32cube.ide.mpu.remote.serial 1 1 2026-08-26 15:30:30.784
+!MESSAGE port: COM6
+
+!ENTRY com.st.stm32cube.ide.mpu.remote.serial 1 1 2026-08-26 15:30:30.784
+!MESSAGE port: COM5
+!SESSION 2026-08-26 15:31:28.553 -----------------------------------------------
+eclipse.buildId=Version 2.2.0
+java.version=21.0.10
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=zh_CN
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-08-26 15:31:37.981
+!MESSAGE Log4j2 initialized with config file E:\project\Industrial_Potentiostat\workspace\.metadata\.log4j2.xml
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:31:40.095
+!MESSAGE System property http.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:31:40.096
+!MESSAGE System property http.proxyPort is set to 9567 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:31:40.096
+!MESSAGE System property https.proxyHost is set to 127.0.0.1 but should not be set.
+
+!ENTRY org.eclipse.core.net 1 0 2026-08-26 15:31:40.097
+!MESSAGE System property https.proxyPort is set to 9567 but should not be set.
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-08-26 15:31:41.976
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY com.st.stm32cube.ide.mpu.remote.serial 1 1 2026-08-26 15:31:47.826
+!MESSAGE Executed PowerShell command powershell.exe -Command "Get-CimInstance -ClassName Win32_SerialPort | Select-Object -ExpandProperty DeviceID":
+COM6
+COM5
+
+
+!ENTRY com.st.stm32cube.ide.mpu.remote.serial 1 1 2026-08-26 15:31:47.826
+!MESSAGE port: COM6
+
+!ENTRY com.st.stm32cube.ide.mpu.remote.serial 1 1 2026-08-26 15:31:47.827
+!MESSAGE port: COM5
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-08-26 15:32:38.622
+!MESSAGE Indexed 'Industrial_Potentiostat_F103' (23 sources, 112 headers) in 1.04 sec: 8,302 declarations; 37,204 references; 2 unresolved inclusions; 36 syntax errors; 188 unresolved names (0.41%)
