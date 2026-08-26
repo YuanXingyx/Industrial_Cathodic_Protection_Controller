@@ -1,3 +1,3 @@
 # Current Sense
 
-Future low-voltage output-current measurement module. Status: Not Tested.
+**Post-MVP / Future Work.** Low-voltage output-current measurement module. Status: Not Tested.

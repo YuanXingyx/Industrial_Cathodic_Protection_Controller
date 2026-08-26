@@ -1,3 +1,3 @@
 # Voltage Sense
 
-Future low-voltage `Vout` measurement module. Status: Not Tested.
+**Post-MVP / Future Work.** Low-voltage `Vout` measurement module. Status: Not Tested.

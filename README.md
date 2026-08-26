@@ -37,6 +37,36 @@ Planned peripherals: `ADC1_IN0` for simulated potential, `ADC1_IN1` for future c
 - **V1 — Low-voltage industrial-control prototype:** reference AFE, sensing, low-voltage power stage, protection, RS485/Modbus; still <=24 V DC.
 - **V2 — Standalone controller board:** minimum MCU system and validated modules integrated on PCB after module tests.
 
+## Current Focus
+
+Current milestone: **3–7 Day Cathodic Protection Control Loop MVP**
+
+完成标准：
+
+```text
+Setpoint
+   ↓
+STM32 Control
+   ↓
+PWM
+   ↓
+RC / Dummy Load
+   ↓
+ADC Feedback
+   ↓
+PI Controller
+   ↓
+Measured value converges to setpoint
+```
+
+PC 端能够实时显示：
+
+- Setpoint
+- Measured
+- Control Output
+
+本阶段只包含 ADC/UART、PWM/RC、简单 Dummy Load、P/PI 和 PC 实时曲线。详细执行顺序见 [MVP 7-Day Plan](00_Project_Management/MVP_7Day_Plan.md)。
+
 ## 5. Safety Boundary
 
 The current project must not directly connect to 220 VAC, 380 VAC, a high-voltage DC bus, or mains-derived/high-power stages. Any >24 V DC or mains concept is documentation-only Future Work.
@@ -52,11 +82,13 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | Dummy load | Planned / Not Tested |
 | P controller | Planned / Not Tested |
 | PI controller | Interface only / Not Tested |
-| Current sensing | Planned / Not Tested |
-| Voltage sensing | Planned / Not Tested |
-| RS485 | Planned / Not Tested |
-| Modbus | Planned / Not Tested |
-| PCB | Future |
+| Current sensing | Post-MVP / Future Work |
+| Voltage sensing | Post-MVP / Future Work |
+| Reference AFE | Post-MVP / Future Work |
+| RS485 | Post-MVP / Future Work |
+| Modbus | Post-MVP / Future Work |
+| Protection | Post-MVP / Future Work |
+| PCB | Post-MVP / Future Work |
 
 ## Engineering Rules
 
