@@ -85,8 +85,12 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | PWM basic duty output | PASS — 10%, 25%, 50%, 75%, and 90% hardware verified |
 | PWM frequency calculation | 1 kHz theoretical |
 | PWM frequency hardware measurement | Not Tested |
-| PWM RC filter | Not Tested |
-| PWM analog output | Not Tested |
+| PWM RC filter | PASS — 100 kOhm / 100 nF hardware verified |
+| PWM analog output | PASS — five DC output points verified with DMM |
+| PWM ripple | Not Measured |
+| PWM settling time | Not Measured |
+| PWM oscilloscope verification | Not Tested |
+| PWM RC load drive capability | Not Tested |
 | Dummy load | Planned / Not Tested |
 | P controller | Planned / Not Tested |
 | PI controller | Interface only / Not Tested |
@@ -104,4 +108,4 @@ Unknown values are `TBD`; unperformed verification is `Not Tested`. GPIO assignm
 
 ## Next Task
 
-Only: **Day 3 / PWM + RC Low-Pass Filter**. PWM analog output remains `Not Tested` until that hardware test is performed.
+Only: **Day 4 / Dummy Load + P Control**. Dummy Load and P/PI control remain `Not Tested` until their hardware tests are performed.

@@ -5,7 +5,7 @@
 | M0 | Project initialized | Complete (working tree; commit pending) |
 | M1 | ADC acquisition verified | Not Started |
 | M2 | PWM basic duty output verified | Complete — frequency hardware measurement Not Tested |
-| M3 | PWM analog output verified | Not Started |
+| M3 | PWM analog output verified | Complete — DMM DC output; ripple and settling Not Measured |
 | M4 | Dummy load responding | Not Started |
 | M5 | P closed loop running | Not Started |
 | M6 | PI closed loop stable | Not Started |
