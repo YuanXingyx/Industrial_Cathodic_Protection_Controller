@@ -86,6 +86,64 @@ ADC_RAW = 0
 For STM32F103 ADC measurements, perform ADC calibration during initialization
 before relying on measurement accuracy.
 
+## 2026-08-27 - CTRL-DBG-001 Closed-loop overshoot caused by slow RC plant and incremental control
+
+### Problem
+
+The closed-loop system converged near the target but showed clear overshoot,
+target crossings, and repeated correction.
+
+### Observation
+
+Plant:
+
+```text
+R = 10 kOhm
+C = 100 uF
+RC ≈ 1 s
+```
+
+Controller update:
+
+```text
+approximately 100 ms
+```
+
+Controller action:
+
+```text
+±1% duty per update outside a ±20 ADC-count deadband
+```
+
+### Analysis
+
+The plant responded much more slowly than the controller update interval. The
+incremental controller continued changing duty before the RC output had fully
+responded. Delayed plant response was followed by target crossing, overshoot,
+and repeated direction reversal.
+
+### Root Cause
+
+Primary contributing factors:
+
+- Large RC time constant.
+- Incremental controller behavior.
+- Controller update interval relative to plant response.
+
+These are recorded as contributing factors rather than a single proven root
+cause.
+
+### Verification
+
+Real UART data showed correct control direction and eventual convergence near
+`ADC_RAW = 2048`. Representative near-target readings ranged around 2043 to
+2055 in the supplied samples, with duty around 51% to 52% in those samples.
+
+### Lessons Learned
+
+Closed-loop behavior depends not only on control direction, but also on plant
+dynamics and controller timing.
+
 ## YYYY-MM-DD - BUG-XXX
 
 ### Problem

@@ -91,9 +91,12 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | PWM settling time | Not Measured |
 | PWM oscilloscope verification | Not Tested |
 | PWM RC load drive capability | Not Tested |
-| Dummy load | Planned / Not Tested |
-| P controller | Planned / Not Tested |
-| PI controller | Interface only / Not Tested |
+| RC feedback plant | PASS — minimum feedback path hardware verified |
+| Deadband incremental controller | PASS — direction and convergence verified |
+| True P controller | Not Implemented |
+| PI controller | Not Implemented |
+| Step response characterization | Not Tested |
+| Python host plotting | Not Implemented |
 | Current sensing | Post-MVP / Future Work |
 | Voltage sensing | Post-MVP / Future Work |
 | Reference AFE | Post-MVP / Future Work |
@@ -108,4 +111,4 @@ Unknown values are `TBD`; unperformed verification is `Not Tested`. GPIO assignm
 
 ## Next Task
 
-Only: **Day 4 / Dummy Load + P Control**. Dummy Load and P/PI control remain `Not Tested` until their hardware tests are performed.
+Only: **Day 5 / True P Controller**. The current verified algorithm is a deadband incremental controller, not a P controller. PI remains `Not Implemented`.

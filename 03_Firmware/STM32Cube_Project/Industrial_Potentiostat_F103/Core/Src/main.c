@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,9 +47,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static uint32_t adc_raw;
-static char uart_buf[32];
-static const uint8_t adc_error_msg[] = "ADC_ERROR\r\n";
+static uint32_t adc_raw = 0;
+static uint16_t target_raw = 2048;
+static int32_t error = 0;
+static uint8_t duty = 50;
+
+static char uart_buf[64];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,6 +63,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 
 /* USER CODE END 0 */
 
@@ -95,14 +100,17 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  /* Keep the default PWM output at 50% after duty-cycle verification. */
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 500);
-
   if (HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
   {
       Error_Handler();
   }
+
+  if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1) != HAL_OK)
+  {
+      Error_Handler();
+  }
+
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 500);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -112,36 +120,59 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_StatusTypeDef adc_status = HAL_ADC_Start(&hadc1);
+	  HAL_ADC_Start(&hadc1);
 
-    if (adc_status == HAL_OK)
-    {
-      adc_status = HAL_ADC_PollForConversion(&hadc1, 100U);
-    }
+	      if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+	      {
+	          adc_raw = HAL_ADC_GetValue(&hadc1);
+	      }
 
-    if (adc_status == HAL_OK)
-    {
-      int uart_len;
+	      HAL_ADC_Stop(&hadc1);
 
-      adc_raw = HAL_ADC_GetValue(&hadc1);
-      (void)HAL_ADC_Stop(&hadc1);
-      uart_len = snprintf(uart_buf, sizeof(uart_buf),
-                          "ADC_RAW=%lu\r\n", (unsigned long)adc_raw);
+	      error = (int32_t)target_raw - (int32_t)adc_raw;
 
-      if ((uart_len > 0) && ((size_t)uart_len < sizeof(uart_buf)))
-      {
-        (void)HAL_UART_Transmit(&huart1, (uint8_t *)uart_buf,
-                                (uint16_t)uart_len, 100U);
-      }
-    }
-    else
-    {
-      (void)HAL_ADC_Stop(&hadc1);
-      (void)HAL_UART_Transmit(&huart1, (uint8_t *)adc_error_msg,
-                              (uint16_t)(sizeof(adc_error_msg) - 1U), 100U);
-    }
+	      if (error > 20)
+	      {
+	          if (duty < 100)
+	          {
+	              duty++;
+	          }
+	      }
+	      else if (error < -20)
+	      {
+	          if (duty > 0)
+	          {
+	              duty--;
+	          }
+	      }
 
-    HAL_Delay(500U);
+	      __HAL_TIM_SET_COMPARE(
+	          &htim3,
+	          TIM_CHANNEL_1,
+	          duty * 10
+	      );
+
+	      int len = snprintf(
+	          uart_buf,
+	          sizeof(uart_buf),
+	          "ADC=%lu,TARGET=%u,ERR=%ld,DUTY=%u\r\n",
+	          (unsigned long)adc_raw,
+	          target_raw,
+	          (long)error,
+	          duty
+	      );
+
+	      if (len > 0)
+	      {
+	          HAL_UART_Transmit(
+	              &huart1,
+	              (uint8_t *)uart_buf,
+	              (uint16_t)len,
+	              100
+	          );
+	      }
+
+	      HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
