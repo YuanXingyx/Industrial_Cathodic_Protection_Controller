@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -92,7 +93,11 @@ int main(void)
   MX_GPIO_Init();
   MX_ADC1_Init();
   MX_USART1_UART_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  /* Keep the default PWM output at 50% after duty-cycle verification. */
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 500);
 
   if (HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
   {

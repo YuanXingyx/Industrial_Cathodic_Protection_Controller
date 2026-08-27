@@ -82,7 +82,11 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | ADC potentiometer sweep | PASS — hardware verified |
 | ADC accuracy | Not Tested |
 | ADC linearity | Not Tested |
-| PWM output | Planned / Not Tested |
+| PWM basic duty output | PASS — 10%, 25%, 50%, 75%, and 90% hardware verified |
+| PWM frequency calculation | 1 kHz theoretical |
+| PWM frequency hardware measurement | Not Tested |
+| PWM RC filter | Not Tested |
+| PWM analog output | Not Tested |
 | Dummy load | Planned / Not Tested |
 | P controller | Planned / Not Tested |
 | PI controller | Interface only / Not Tested |
@@ -100,4 +104,4 @@ Unknown values are `TBD`; unperformed verification is `Not Tested`. GPIO assignm
 
 ## Next Task
 
-Only: **TEST-001 / Phase 1 — STM32F103 ADC voltage acquisition verification** (`potentiometer → 0–3.3 V → ADC → UART → PC`).
+Only: **Day 3 / PWM + RC Low-Pass Filter**. PWM analog output remains `Not Tested` until that hardware test is performed.
