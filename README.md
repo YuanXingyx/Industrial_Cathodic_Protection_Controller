@@ -100,7 +100,13 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | Conditional integration | Not Implemented |
 | Back-calculation anti-windup | Not Implemented |
 | Step response characterization | Not Tested |
-| Python host plotting | Not Implemented |
+| Python host tool | PASS — serial parsing, plotting, and CSV logging verified |
+| Python serial receive and parsing | PASS — COM7 / 115200 verified |
+| CSV logging with output_x100 | PASS — real capture preserved |
+| Real-time Target/ADC plotting | PASS — verified |
+| Setpoint step direction tracking | PASS — 2048 → 2400 → 2048 verified |
+| Stable PI baseline | Kp 0.010 / Ki 0.002 |
+| Step-response settling time | Not Measured |
 | Current sensing | Post-MVP / Future Work |
 | Voltage sensing | Post-MVP / Future Work |
 | Reference AFE | Post-MVP / Future Work |
@@ -115,4 +121,4 @@ Unknown values are `TBD`; unperformed verification is `Not Tested`. GPIO assignm
 
 ## Next Task
 
-Only planned next stage: **Day 7 / Host-side visualization and step-response logging**. Read UART with Python, plot Target/ADC/Duty, save CSV, and perform one setpoint step test. No Day 7 implementation is included yet. Hardware TODO: replace the temporary 100 uF plant capacitor with approximately 1 uF when available; the replacement remains `Not Tested`.
+Day 7 host visualization and step-direction validation are complete. The project remains a **low-voltage cathodic-protection control-loop MVP / minimum closed-loop validation**, not a complete industrial cathodic-protection instrument. Hardware TODO: replace the temporary 100 uF plant capacitor with approximately 1 uF when available; the replacement remains `Not Tested`.

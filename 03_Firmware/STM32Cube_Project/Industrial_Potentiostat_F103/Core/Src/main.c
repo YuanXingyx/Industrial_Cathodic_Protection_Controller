@@ -52,7 +52,7 @@ static uint16_t target_raw = 2048;
 
 static int32_t error = 0;
 
-static float kp = 0.01f;
+static float kp = 0.010f;
 static float ki = 0.002f;
 
 static float integral = 0.0f;
@@ -124,11 +124,28 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint32_t test_start_ms = HAL_GetTick();
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  uint32_t elapsed_ms = HAL_GetTick() - test_start_ms;
+
+	      if (elapsed_ms < 10000U)
+	      {
+	          target_raw = 2048;
+	      }
+	      else if (elapsed_ms < 30000U)
+	      {
+	          target_raw = 2400;
+	      }
+	      else
+	      {
+	          target_raw = 2048;
+	      }
+
 	  HAL_ADC_Start(&hadc1);
 
 	  if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
@@ -162,6 +179,9 @@ int main(void)
 	          control_output = 0.0f;
 	      }
 
+	      uint32_t output_x100 =
+	          (uint32_t)(control_output * 100.0f + 0.5f);
+
 	      uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim3);
 
 	      uint32_t compare =
@@ -185,11 +205,12 @@ int main(void)
 	      int len = snprintf(
 	          uart_buf,
 	          sizeof(uart_buf),
-			  "ADC=%lu,TARGET=%u,INT=%ld,ERR=%ld,KP=0.010,KI=0.002,DUTY=%u\r\n",
+			  "ADC=%lu,TARGET=%u,INT=%ld,ERR=%ld,KP=0.010,KI=0.002,OUT=%lu,DUTY=%u\r\n",
 	          (unsigned long)adc_raw,
 	          target_raw,
-			  (long)integral_log,
+	          (long)integral_log,
 	          (long)error,
+	          (unsigned long)output_x100,
 	          duty
 	      );
 

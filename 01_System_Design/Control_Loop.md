@@ -36,3 +36,24 @@ instantaneous error can be zero while the integral remains non-zero and holds a
 non-50% control output.
 
 The current 10 kOhm/100 uF plant is temporary and responds slowly (`RC ≈ 1 s`).
+
+## Day 7 Validation Evidence
+
+The stable baseline remains `Kp=0.010`, `Ki=0.002`, with approximately 0.1 s
+control updates, ±5000 integral clamp, and 0% to 100% output clamp. A host-side
+Python tool parses ADC, Target, Integral, Error, gains, output×100, and Duty;
+it plots Target/ADC and stores CSV data.
+
+The tested step profile was `2048 → 2400 → 2048`. Feedback moved in the command
+direction and returned toward the original target. Exact settling time was not
+measured.
+
+Gain comparison showed a practical stability trade-off on the temporary plant:
+
+- `Kp=0.010`, `Ki=0.002`: stable but slow; retained baseline.
+- `Kp≈0.015`, `Ki=0.002`: sustained oscillation observed.
+- `Kp=0.020`, `Ki=0.002`: stronger sustained oscillation observed.
+
+Isolated ADC spikes were observed but did not form sustained oscillation; root
+cause remains TBD. This evidence validates only the low-voltage minimum closed
+loop, not a complete industrial cathodic-protection system.

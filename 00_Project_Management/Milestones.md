@@ -9,6 +9,7 @@
 | M4 | Minimum RC plant feedback path responding | Complete — hardware verified |
 | M5 | P closed loop running | Complete — Kp 0.01 hardware verified |
 | M6 | PI closed loop stable | Complete — integral behavior and clamping verified |
+| M6A | Host visualization and step-direction validation | Complete — UART plot and CSV verified; settling time Not Measured |
 | M7 | Current sensing integrated | Not Started |
 | M8 | Voltage sensing integrated | Not Started |
 | M9 | Reference AFE integrated | Not Started |

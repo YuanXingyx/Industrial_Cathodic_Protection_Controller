@@ -61,3 +61,22 @@ bias.
 
 Controller progression: Day 4 deadband incremental → Day 5 P with base-duty
 bias → Day 6 PI with integral clamping.
+
+## Day 7 — Host Validation Talking Points
+
+Built a minimum closed-loop validation on STM32F103 using ADC, PI control,
+PWM-based analog output, UART telemetry, Python visualization, and step-response
+logging; identified gain-dependent stability trade-offs experimentally.
+
+- The Python tool parses all telemetry fields, plots Target/ADC in real time,
+  and preserves raw evidence in CSV, including control output at 0.01% units.
+- The `2048 → 2400 → 2048` command verified response direction and return toward
+  the baseline target. Exact settling time was not measured.
+- Increasing Kp from the stable 0.010 baseline to approximately 0.015 produced
+  sustained oscillation; 0.020 produced stronger sustained oscillation. The
+  engineering decision was to restore 0.010 rather than keep increasing gain.
+- Isolated ADC spikes are tracked separately with root cause TBD; they were not
+  misclassified as sustained controller instability.
+- This is a low-voltage control-loop MVP. Reference-electrode AFE, industrial
+  power conversion, sensing, communications, protection, supply, and EMC work
+  remain outside the validated scope.

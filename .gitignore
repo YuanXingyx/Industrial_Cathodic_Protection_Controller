@@ -23,6 +23,12 @@ Release/
 *.swp
 *~
 
+# Python local environments and bytecode
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
 # KiCad generated/temporary files (source files remain tracked)
 *-backups/
 _autosave-*
