@@ -40,3 +40,24 @@ Current evidence status: Not Tested. Do not turn planned design rationale into c
 Day 4 and Day 5 must be described separately: Day 4 verified a deadband
 incremental controller; Day 5 verified a true P controller with 50% base-duty
 bias.
+
+## Day 6 — PI Controller Talking Points
+
+- The P term reacts to current error; the I term accumulates error over time and
+  supplies the sustained correction that P-only control may lack.
+- P-only control can retain offset because a nonzero error may be required to
+  produce the needed correction. Integral action can retain that correction
+  even after instantaneous error reaches zero.
+- `ERR=0` with nonzero `INT` is expected: the integral state represents past
+  error and can hold the output away from the 50% base duty.
+- This implementation clamps the integral state to ±5000 to prevent unlimited
+  accumulation. Clamping is basic protection, not complete anti-windup.
+  Conditional integration and back-calculation are not implemented.
+- The temporary 10 kOhm/100 uF plant has `RC ≈ 1 s`, so feedback reacts slowly
+  and each experiment requires a long observation interval.
+- Isolated ADC outliers returned immediately to the target region. They are
+  recorded as possible sampling/contact/transient noise with root cause TBD,
+  not automatically labeled controller instability.
+
+Controller progression: Day 4 deadband incremental → Day 5 P with base-duty
+bias → Day 6 PI with integral clamping.

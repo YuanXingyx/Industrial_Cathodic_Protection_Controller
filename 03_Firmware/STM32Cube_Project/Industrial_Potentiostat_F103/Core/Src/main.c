@@ -53,11 +53,15 @@ static uint16_t target_raw = 2048;
 static int32_t error = 0;
 
 static float kp = 0.01f;
+static float ki = 0.002f;
+
+static float integral = 0.0f;
 static float control_output = 50.0f;
 
 static uint8_t duty = 50;
 
 static char uart_buf[96];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -133,8 +137,21 @@ int main(void)
 
 	      error = (int32_t)target_raw - (int32_t)adc_raw;
 
-	      control_output = 50.0f + kp * (float)error;
+	      integral += (float)error * 0.1f;
 
+	      if (integral > 5000.0f)
+	      {
+	          integral = 5000.0f;
+	      }
+	      else if (integral < -5000.0f)
+	      {
+	          integral = -5000.0f;
+	      }
+
+	      control_output =
+	          50.0f
+	          + kp * (float)error
+	          + ki * integral;
 
 	      if (control_output > 100.0f)
 	      {
@@ -163,12 +180,15 @@ int main(void)
 
 	      duty = (uint8_t)(control_output + 0.5f);
 
+	      int32_t integral_log = (int32_t)integral;
+
 	      int len = snprintf(
 	          uart_buf,
 	          sizeof(uart_buf),
-	          "ADC=%lu,TARGET=%u,ERR=%ld,KP=0.010,DUTY=%u\r\n",
+			  "ADC=%lu,TARGET=%u,INT=%ld,ERR=%ld,KP=0.010,KI=0.002,DUTY=%u\r\n",
 	          (unsigned long)adc_raw,
 	          target_raw,
+			  (long)integral_log,
 	          (long)error,
 	          duty
 	      );

@@ -18,6 +18,21 @@ control_output = 50% + Kp × error
 
 The output is limited to 0% through 100%. PWM CCR is calculated directly from
 the bounded floating-point output to avoid early 1% integer-duty quantization.
-The current 10 kOhm/100 uF plant is temporary and responds slowly (`RC ≈ 1 s`).
 
-PI control remains `Not Tested`.
+- **Day 6:** PI Controller with integral clamping, verified with
+  `Kp = 0.010`, `Ki = 0.002`, and `dt ≈ 0.1 s`.
+
+```text
+integral = integral + error × dt
+control_output = 50% + Kp × error + Ki × integral
+```
+
+The integral state is clamped to `[-5000, +5000]`. This prevents unlimited
+state accumulation but is not full anti-windup; conditional integration and
+back-calculation are not implemented.
+
+The I term supplies retained compensation for long-lived error. Therefore the
+instantaneous error can be zero while the integral remains non-zero and holds a
+non-50% control output.
+
+The current 10 kOhm/100 uF plant is temporary and responds slowly (`RC ≈ 1 s`).
