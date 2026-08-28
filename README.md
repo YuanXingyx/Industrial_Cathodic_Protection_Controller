@@ -93,7 +93,7 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | PWM RC load drive capability | Not Tested |
 | RC feedback plant | PASS — minimum feedback path hardware verified |
 | Deadband incremental controller | PASS — direction and convergence verified |
-| True P controller | Not Implemented |
+| True P controller | PASS — Kp 0.01 with 50% base-duty bias hardware verified |
 | PI controller | Not Implemented |
 | Step response characterization | Not Tested |
 | Python host plotting | Not Implemented |
@@ -111,4 +111,4 @@ Unknown values are `TBD`; unperformed verification is `Not Tested`. GPIO assignm
 
 ## Next Task
 
-Only: **Day 5 / True P Controller**. The current verified algorithm is a deadband incremental controller, not a P controller. PI remains `Not Implemented`.
+Only planned next stage: **Day 6 / PI Controller**. Add integral action and basic integral limiting/anti-windup, but do not claim results until hardware testing. Hardware TODO: replace the temporary 100 uF plant capacitor with approximately 1 uF when available; the replacement remains `Not Tested`.

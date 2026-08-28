@@ -49,10 +49,15 @@
 /* USER CODE BEGIN PV */
 static uint32_t adc_raw = 0;
 static uint16_t target_raw = 2048;
+
 static int32_t error = 0;
+
+static float kp = 0.01f;
+static float control_output = 50.0f;
+
 static uint8_t duty = 50;
 
-static char uart_buf[64];
+static char uart_buf[96];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,40 +127,46 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  HAL_ADC_Start(&hadc1);
 
-	      if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
-	      {
-	          adc_raw = HAL_ADC_GetValue(&hadc1);
-	      }
-
-	      HAL_ADC_Stop(&hadc1);
+	  if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+	  {
+	      adc_raw = HAL_ADC_GetValue(&hadc1);
 
 	      error = (int32_t)target_raw - (int32_t)adc_raw;
 
-	      if (error > 20)
+	      control_output = 50.0f + kp * (float)error;
+
+
+	      if (control_output > 100.0f)
 	      {
-	          if (duty < 100)
-	          {
-	              duty++;
-	          }
+	          control_output = 100.0f;
 	      }
-	      else if (error < -20)
+	      else if (control_output < 0.0f)
 	      {
-	          if (duty > 0)
-	          {
-	              duty--;
-	          }
+	          control_output = 0.0f;
+	      }
+
+	      uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim3);
+
+	      uint32_t compare =
+	          (uint32_t)(((arr + 1U) * control_output) / 100.0f + 0.5f);
+
+	      if (compare > arr)
+	      {
+	          compare = arr;
 	      }
 
 	      __HAL_TIM_SET_COMPARE(
 	          &htim3,
 	          TIM_CHANNEL_1,
-	          duty * 10
+	          compare
 	      );
+
+	      duty = (uint8_t)(control_output + 0.5f);
 
 	      int len = snprintf(
 	          uart_buf,
 	          sizeof(uart_buf),
-	          "ADC=%lu,TARGET=%u,ERR=%ld,DUTY=%u\r\n",
+	          "ADC=%lu,TARGET=%u,ERR=%ld,KP=0.010,DUTY=%u\r\n",
 	          (unsigned long)adc_raw,
 	          target_raw,
 	          (long)error,
@@ -171,8 +182,10 @@ int main(void)
 	              100
 	          );
 	      }
+	  }
 
-	      HAL_Delay(100);
+	  HAL_ADC_Stop(&hadc1);
+	  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }

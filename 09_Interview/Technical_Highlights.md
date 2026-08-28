@@ -16,3 +16,27 @@ Develop evidence-backed answers for:
 - Why the project does not directly implement 220/380 V
 
 Current evidence status: Not Tested. Do not turn planned design rationale into claimed results.
+
+## Day 5 — P Controller Talking Points
+
+- A P controller changes its output in proportion to the current error:
+  `error = target - measured`.
+- With this loop polarity, a larger positive error produces a larger PWM
+  command; a negative error reduces PWM.
+- `Kp` sets correction strength. Too small gives weak correction and potentially
+  larger offset; too large can cause aggressive response, overshoot, or
+  oscillation. Only `Kp = 0.01` has been validated here.
+- P-only control can retain steady-state offset when the plant requires a
+  nonzero sustained correction. The actual offset also depends on plant gain,
+  hardware conditions, and base-duty bias.
+- Integral action is the planned next step because accumulated error can supply
+  that sustained correction; it also requires integral limits/anti-windup.
+- The temporary 10 kOhm/100 uF plant has `RC ≈ 1 s`, so its output lags controller
+  changes and experiments need a long settling interval.
+- Do not quantize the floating-point P output to integer duty before calculating
+  CCR. Direct CCR calculation preserves timer-level resolution; rounded duty is
+  suitable only for human-readable telemetry.
+
+Day 4 and Day 5 must be described separately: Day 4 verified a deadband
+incremental controller; Day 5 verified a true P controller with 50% base-duty
+bias.
