@@ -35,7 +35,9 @@ The I term supplies retained compensation for long-lived error. Therefore the
 instantaneous error can be zero while the integral remains non-zero and holds a
 non-50% control output.
 
-The current 10 kOhm/100 uF plant is temporary and responds slowly (`RC ≈ 1 s`).
+The original 10 kOhm/100 uF temporary plant (`RC ≈ 1 s`) was replaced by a
+10 kOhm/1 uF test plant. Static 25%, 50%, and 75% PWM-to-feedback points passed
+hardware verification.
 
 ## Day 7 Validation Evidence
 
@@ -57,3 +59,20 @@ Gain comparison showed a practical stability trade-off on the temporary plant:
 Isolated ADC spikes were observed but did not form sustained oscillation; root
 cause remains TBD. This evidence validates only the low-voltage minimum closed
 loop, not a complete industrial cathodic-protection system.
+
+## Day 8 ADC Averaging Validation
+
+The retained baseline is `Kp=0.010`, `Ki=0.002`, `dt≈0.1 s`, and an approximately
+100 ms control update. Each update attempts eight software-triggered ADC
+conversions, excludes failed conversions, and uses `adc_sum / adc_count`. The PI
+and PWM states are not updated if no conversion succeeds.
+
+The hardware completed the `2048 -> 2400 -> 2048` profile without sustained
+oscillation. Compared with single-sample feedback, the measured curve was
+visibly smoother and isolated ADC spikes were reduced. Their root cause is not
+fully confirmed. Response remained slow, and exact settling time was not
+measured. A tested 20 ms control period showed more visible variation without a
+clear response-speed benefit, so it was not retained.
+
+This averaging is a practical MVP acquisition improvement, not a claim of a
+production industrial filtering or EMC solution.

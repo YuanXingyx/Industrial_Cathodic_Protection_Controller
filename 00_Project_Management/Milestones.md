@@ -10,6 +10,7 @@
 | M5 | P closed loop running | Complete — Kp 0.01 hardware verified |
 | M6 | PI closed loop stable | Complete — integral behavior and clamping verified |
 | M6A | Host visualization and step-direction validation | Complete — UART plot and CSV verified; settling time Not Measured |
+| M6B | 1 uF RC and eight-sample ADC averaging validation | Complete — smoother curve and fewer isolated spikes observed; response still slow; settling time Not Measured |
 | M7 | Current sensing integrated | Not Started |
 | M8 | Voltage sensing integrated | Not Started |
 | M9 | Reference AFE integrated | Not Started |

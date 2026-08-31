@@ -106,6 +106,10 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | Real-time Target/ADC plotting | PASS — verified |
 | Setpoint step direction tracking | PASS — 2048 → 2400 → 2048 verified |
 | Stable PI baseline | Kp 0.010 / Ki 0.002 |
+| 1 uF RC static validation | PASS — 25%, 50%, and 75% points hardware verified |
+| Eight-sample ADC averaging | PASS — hardware verified at approximately 100 ms control period |
+| ADC curve smoothness/spike reduction | Improvement observed; spike root cause not fully confirmed |
+| Day 8 response speed | Slow / improvement needed |
 | Step-response settling time | Not Measured |
 | Current sensing | Post-MVP / Future Work |
 | Voltage sensing | Post-MVP / Future Work |
@@ -121,4 +125,6 @@ Unknown values are `TBD`; unperformed verification is `Not Tested`. GPIO assignm
 
 ## Next Task
 
-Day 7 host visualization and step-direction validation are complete. The project remains a **low-voltage cathodic-protection control-loop MVP / minimum closed-loop validation**, not a complete industrial cathodic-protection instrument. Hardware TODO: replace the temporary 100 uF plant capacitor with approximately 1 uF when available; the replacement remains `Not Tested`.
+Day 8 validation is complete with a 10 kOhm/1 uF RC plant, eight valid ADC samples averaged per approximately 100 ms control update, and the stable `Kp=0.010` / `Ki=0.002` baseline. The measured curve was visibly smoother and isolated spikes were reduced compared with single-sample acquisition, although their root cause remains unconfirmed. A 20 ms control-period trial did not provide a clear speed benefit and was not retained. Response remains slow, and exact settling time is `Not Measured`.
+
+The project remains a **low-voltage cathodic-protection control-loop MVP / minimum constant-potential control validation**, not a complete industrial cathodic-protection instrument.

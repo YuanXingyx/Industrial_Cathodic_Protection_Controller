@@ -146,11 +146,26 @@ int main(void)
 	          target_raw = 2048;
 	      }
 
-	  HAL_ADC_Start(&hadc1);
+	  uint32_t adc_sum = 0U;
+	  uint32_t adc_count = 0U;
 
-	  if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+	  for (uint32_t sample = 0U; sample < 8U; sample++)
 	  {
-	      adc_raw = HAL_ADC_GetValue(&hadc1);
+	      if (HAL_ADC_Start(&hadc1) == HAL_OK)
+	      {
+	          if (HAL_ADC_PollForConversion(&hadc1, 100U) == HAL_OK)
+	          {
+	              adc_sum += HAL_ADC_GetValue(&hadc1);
+	              adc_count++;
+	          }
+	      }
+
+	      (void)HAL_ADC_Stop(&hadc1);
+	  }
+
+	  if (adc_count > 0U)
+	  {
+	      adc_raw = adc_sum / adc_count;
 
 	      error = (int32_t)target_raw - (int32_t)adc_raw;
 
@@ -225,8 +240,7 @@ int main(void)
 	      }
 	  }
 
-	  HAL_ADC_Stop(&hadc1);
-	  HAL_Delay(100);
+	  HAL_Delay(100U);
   }
   /* USER CODE END 3 */
 }

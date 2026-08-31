@@ -80,3 +80,26 @@ logging; identified gain-dependent stability trade-offs experimentally.
 - This is a low-voltage control-loop MVP. Reference-electrode AFE, industrial
   power conversion, sensing, communications, protection, supply, and EMC work
   remain outside the validated scope.
+
+## Day 8 — ADC Averaging Talking Points
+
+Compared multiple RC time constants and ADC acquisition strategies, then
+introduced eight-sample averaging to reduce measurement spikes while preserving
+closed-loop stability on the STM32F103 MVP.
+
+- Replacing the temporary 100 uF capacitor with 1 uF reduced the plant time
+  constant; static 25%, 50%, and 75% points were verified before closed-loop use.
+- Eight valid ADC conversions are averaged per approximately 100 ms PI update.
+  Failed conversions are excluded, and the controller is not updated if all
+  conversions fail.
+- The `2048 -> 2400 -> 2048` hardware run retained correct tracking direction
+  and closed-loop stability. The curve was visibly smoother and isolated spikes
+  were reduced relative to single-sample acquisition.
+- The spike root cause is not fully confirmed, so averaging is described as an
+  observed improvement rather than a complete root-cause fix.
+- A 20 ms update-period experiment produced more visible variation without a
+  clear speed gain. The stable `Kp=0.010`, `Ki=0.002`, approximately 100 ms
+  baseline was restored instead of continuing to tune multiple variables.
+- Response is still slow and exact settling time was not measured.
+- This remains a low-voltage minimum constant-potential control validation, not
+  a production industrial potentiostat or industrial filtering solution.
