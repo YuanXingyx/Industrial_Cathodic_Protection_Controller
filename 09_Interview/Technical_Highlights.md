@@ -103,3 +103,21 @@ closed-loop stability on the STM32F103 MVP.
 - Response is still slow and exact settling time was not measured.
 - This remains a low-voltage minimum constant-potential control validation, not
   a production industrial potentiostat or industrial filtering solution.
+
+## Day 9 — Quantitative Response Analysis Talking Points
+
+- Built a reusable offline analyzer that detects target changes from telemetry
+  instead of assuming fixed step timestamps.
+- Defined the project settling criterion as ±20 ADC counts continuously for at
+  least 2.0 s, bounded by the next target change.
+- In the archived Day 8 run, the `2048 -> 2400` step was **Not Settled** before
+  the return command. The `2400 -> 2048` step settled in 58.744 s by the same
+  rule, confirming quantitatively that the retained loop is stable but slow.
+- The final 2048 plateau's last-five-second window had mean ADC 2047.668 and
+  population standard deviation 6.821 counts. The 2400 plateau ended with mean
+  ADC 2298.022, so it was still materially below target.
+- The spike-candidate rule found 4 of 2366 assessed samples (0.169%), but this is
+  exploratory only and neither the threshold nor the result is an industrial
+  acceptance criterion or root-cause diagnosis.
+- Host-side timestamps contain irregular intervals, including a capture gap, so
+  time-window weighting is documented as a limitation rather than hidden.

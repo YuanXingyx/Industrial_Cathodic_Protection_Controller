@@ -111,6 +111,7 @@ The current project must not directly connect to 220 VAC, 380 VAC, a high-voltag
 | ADC curve smoothness/spike reduction | Improvement observed; spike root cause not fully confirmed |
 | Day 8 response speed | Slow / improvement needed |
 | Step-response settling time | Not Measured |
+| Day 9 quantitative CSV analysis | Complete — upward step Not Settled; downward step 58.744 s under project criterion |
 | Current sensing | Post-MVP / Future Work |
 | Voltage sensing | Post-MVP / Future Work |
 | Reference AFE | Post-MVP / Future Work |
@@ -128,3 +129,10 @@ Unknown values are `TBD`; unperformed verification is `Not Tested`. GPIO assignm
 Day 8 validation is complete with a 10 kOhm/1 uF RC plant, eight valid ADC samples averaged per approximately 100 ms control update, and the stable `Kp=0.010` / `Ki=0.002` baseline. The measured curve was visibly smoother and isolated spikes were reduced compared with single-sample acquisition, although their root cause remains unconfirmed. A 20 ms control-period trial did not provide a clear speed benefit and was not retained. Response remains slow, and exact settling time is `Not Measured`.
 
 The project remains a **low-voltage cathodic-protection control-loop MVP / minimum constant-potential control validation**, not a complete industrial cathodic-protection instrument.
+
+Day 9 adds a repeatable offline CSV evaluator. For the archived Day 8 capture,
+the `2048 -> 2400` plateau did not settle before the return step, while the
+`2400 -> 2048` step settled in 58.744 s under the project criterion of ±20 ADC
+counts continuously for at least 2.0 s. The criterion is not an industrial
+acceptance standard, and irregular host-side timestamp intervals remain a data
+quality limitation.
