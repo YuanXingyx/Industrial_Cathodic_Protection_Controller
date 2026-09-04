@@ -60,7 +60,7 @@ static float control_output = 50.0f;
 
 static uint8_t duty = 50;
 
-static char uart_buf[96];
+static char uart_buf[128];
 
 /* USER CODE END PV */
 
@@ -137,7 +137,7 @@ int main(void)
 	      {
 	          target_raw = 2048;
 	      }
-	      else if (elapsed_ms < 30000U)
+	      else if (elapsed_ms < 90000U)
 	      {
 	          target_raw = 2400;
 	      }
@@ -216,11 +216,13 @@ int main(void)
 	      duty = (uint8_t)(control_output + 0.5f);
 
 	      int32_t integral_log = (int32_t)integral;
+	      uint32_t tick_ms = HAL_GetTick();
 
 	      int len = snprintf(
 	          uart_buf,
 	          sizeof(uart_buf),
-			  "ADC=%lu,TARGET=%u,INT=%ld,ERR=%ld,KP=0.010,KI=0.002,OUT=%lu,DUTY=%u\r\n",
+			  "TICK=%lu,ADC=%lu,TARGET=%u,INT=%ld,ERR=%ld,KP=0.010,KI=0.002,OUT=%lu,DUTY=%u\r\n",
+	          (unsigned long)tick_ms,
 	          (unsigned long)adc_raw,
 	          target_raw,
 	          (long)integral_log,

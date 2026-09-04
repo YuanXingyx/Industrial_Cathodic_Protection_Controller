@@ -8,6 +8,7 @@ PORT = "COM7"
 BAUD = 115200
 
 pattern = re.compile(
+    r"TICK=(\d+),\s*"
     r"ADC=(\d+),\s*"
     r"TARGET=(\d+),\s*"
     r"INT=(-?\d+),\s*"
@@ -42,6 +43,7 @@ with open("pi_log.csv", "w", newline="") as f:
 
     writer.writerow([
     "time_s",
+    "mcu_tick_ms",
     "adc",
     "target",
     "integral",
@@ -63,19 +65,21 @@ with open("pi_log.csv", "w", newline="") as f:
             if not match:
                 continue
 
-            adc = int(match.group(1))
-            target = int(match.group(2))
-            integral = int(match.group(3))
-            error = int(match.group(4))
-            kp = float(match.group(5))
-            ki = float(match.group(6))
-            output_x100 = int(match.group(7))
-            duty = int(match.group(8))
+            mcu_tick_ms = int(match.group(1))
+            adc = int(match.group(2))
+            target = int(match.group(3))
+            integral = int(match.group(4))
+            error = int(match.group(5))
+            kp = float(match.group(6))
+            ki = float(match.group(7))
+            output_x100 = int(match.group(8))
+            duty = int(match.group(9))
 
             t = time.time() - t0
 
             writer.writerow([
                 t,
+                mcu_tick_ms,
                 adc,
                 target,
                 integral,
@@ -94,6 +98,7 @@ with open("pi_log.csv", "w", newline="") as f:
 
             print(
                 f"{t:.2f}s "
+                f"TICK={mcu_tick_ms} "
                 f"ADC={adc} "
                 f"TARGET={target} "
                 f"ERR={error} "

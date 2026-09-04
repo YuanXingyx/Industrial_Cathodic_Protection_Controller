@@ -28,11 +28,15 @@ REQUIRED_FIELDS = (
     "output_x100",
     "duty",
 )
+MCU_TICK_FIELD = "mcu_tick_ms"
+UINT32_MODULUS = 1 << 32
 
 
 @dataclass(frozen=True)
 class Sample:
+    host_time_s: float
     time_s: float
+    mcu_tick_ms: int | None
     adc: float
     target: int
     integral: float
@@ -69,7 +73,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_samples(path: Path) -> tuple[list[Sample], list[str]]:
+def load_samples(path: Path) -> tuple[list[Sample], list[str], str]:
     with path.open("r", newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
         fields = reader.fieldnames or []
@@ -77,7 +81,11 @@ def load_samples(path: Path) -> tuple[list[Sample], list[str]]:
         if missing:
             raise ValueError(f"missing required CSV fields: {', '.join(missing)}")
 
+        use_mcu_tick = MCU_TICK_FIELD in fields
         samples: list[Sample] = []
+        first_unwrapped_tick: int | None = None
+        previous_tick: int | None = None
+        tick_epoch = 0
         for line_number, row in enumerate(reader, start=2):
             try:
                 values = [float(row[field]) for field in REQUIRED_FIELDS]
@@ -85,9 +93,31 @@ def load_samples(path: Path) -> tuple[list[Sample], list[str]]:
                 raise ValueError(f"invalid numeric value at CSV line {line_number}") from exc
             if not all(math.isfinite(value) for value in values):
                 raise ValueError(f"non-finite numeric value at CSV line {line_number}")
+            host_time_s = float(row["time_s"])
+            mcu_tick_ms: int | None = None
+            analysis_time_s = host_time_s
+            if use_mcu_tick:
+                try:
+                    mcu_tick_ms = int(row[MCU_TICK_FIELD])
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(f"invalid MCU tick at CSV line {line_number}") from exc
+                if not 0 <= mcu_tick_ms < UINT32_MODULUS:
+                    raise ValueError(f"MCU tick outside uint32 range at CSV line {line_number}")
+                if previous_tick is not None and mcu_tick_ms < previous_tick:
+                    if previous_tick - mcu_tick_ms > UINT32_MODULUS // 2:
+                        tick_epoch += UINT32_MODULUS
+                    else:
+                        raise ValueError(f"MCU tick moved backward at CSV line {line_number}")
+                unwrapped_tick = tick_epoch + mcu_tick_ms
+                if first_unwrapped_tick is None:
+                    first_unwrapped_tick = unwrapped_tick
+                analysis_time_s = (unwrapped_tick - first_unwrapped_tick) / 1000.0
+                previous_tick = mcu_tick_ms
             samples.append(
                 Sample(
-                    time_s=float(row["time_s"]),
+                    host_time_s=host_time_s,
+                    time_s=analysis_time_s,
+                    mcu_tick_ms=mcu_tick_ms,
                     adc=float(row["adc"]),
                     target=int(row["target"]),
                     integral=float(row["integral"]),
@@ -101,11 +131,13 @@ def load_samples(path: Path) -> tuple[list[Sample], list[str]]:
 
     if not samples:
         raise ValueError("CSV contains no data rows")
+    if any(current.host_time_s <= previous.host_time_s for previous, current in zip(samples, samples[1:])):
+        raise ValueError("host time_s must be strictly increasing")
     if any(current.time_s <= previous.time_s for previous, current in zip(samples, samples[1:])):
-        raise ValueError("time_s must be strictly increasing")
+        raise ValueError("selected analysis time must be strictly increasing")
     if any(sample.error != sample.target - sample.adc for sample in samples):
         raise ValueError("logged error is inconsistent with target - adc")
-    return samples, fields
+    return samples, fields, "MCU TICK" if use_mcu_tick else "Host time_s"
 
 
 def find_plateaus(samples: Sequence[Sample]) -> list[Plateau]:
@@ -240,11 +272,13 @@ def terminal_report(
     plateaus: Sequence[dict[str, object]],
     spikes: dict[str, float | int],
     timing: dict[str, float | int],
+    time_source: str,
 ) -> str:
     lines = [
         f"Source: {path.as_posix()}",
         f"Rows: {len(samples)}",
         f"Fields: {', '.join(fields)}",
+        f"Time source: {time_source}",
         "",
     ]
     for step in steps:
@@ -290,7 +324,7 @@ def terminal_report(
             f"Interval min / median / mean / max: {timing['minimum']:.6f} / {timing['median']:.6f} / {timing['mean']:.6f} / {timing['maximum']:.6f} s",
             f"Intervals below 50 ms: {timing['below_50_ms']}",
             f"Intervals at least 200 ms: {timing['at_least_200_ms']}",
-            "Host-side time_s is used as recorded; irregular intervals can affect time-window weighting.",
+            f"Intervals use the selected analysis time source: {time_source}.",
             "",
             "=== Exploratory Spike Metric ===",
             f"Candidates: {spikes['count']} / {spikes['assessed']} ({spikes['percentage']:.3f}%)",
@@ -309,6 +343,7 @@ def markdown_report(
     plateaus: Sequence[dict[str, object]],
     spikes: dict[str, float | int],
     timing: dict[str, float | int],
+    time_source: str,
 ) -> str:
     lines = [
         "# TEST-012-A Day 8 CSV Quantitative Analysis",
@@ -322,6 +357,7 @@ def markdown_report(
         f"- File: `{source.as_posix()}`",
         f"- Rows: {len(samples)}",
         f"- Fields: `{', '.join(fields)}`",
+        f"- Time source: `{time_source}`",
         "- Original samples are analyzed without removing spikes or trimming the capture.",
         "",
         "## Metric Definitions",
@@ -384,7 +420,8 @@ def markdown_report(
             "- Required fields were present, numeric values were finite, timestamps were strictly increasing, and logged error matched `target - adc`.",
             f"- Recorded interval min/median/mean/max: {timing['minimum']:.6f}/{timing['median']:.6f}/{timing['mean']:.6f}/{timing['maximum']:.6f} s.",
             f"- {timing['below_50_ms']} intervals were below 50 ms and {timing['at_least_200_ms']} were at least 200 ms. Host buffering or capture gaps may therefore affect time-window sample weighting.",
-            "- Host timestamps are used directly as required; CSV capture start and MCU reset are not assumed to be synchronized.",
+            f"- Metric time source: `{time_source}`. MCU tick is normalized to the first captured tick when present; otherwise host `time_s` is used directly.",
+            "- The uint32 MCU tick is unwrapped across a normal rollover. Day 10's short capture is not expected to reach the approximately 49.7-day rollover interval.",
             "- Raw spike candidates remain in all step and plateau calculations.",
             "- The settling threshold and hold duration are project-defined, not an industrial acceptance standard.",
             "- This single capture does not isolate ADC noise, contact noise, timing jitter, or plant/controller effects.",
@@ -400,7 +437,7 @@ def markdown_report(
 
 def main() -> int:
     args = parse_args()
-    samples, fields = load_samples(args.csv_path)
+    samples, fields, time_source = load_samples(args.csv_path)
     plateau_ranges = find_plateaus(samples)
     if len(plateau_ranges) < 2:
         raise ValueError("no target steps detected")
@@ -408,11 +445,11 @@ def main() -> int:
     plateaus = analyze_plateaus(samples, plateau_ranges)
     spikes = analyze_spikes(samples)
     timing = analyze_timing(samples)
-    print(terminal_report(args.csv_path, fields, samples, steps, plateaus, spikes, timing))
+    print(terminal_report(args.csv_path, fields, samples, steps, plateaus, spikes, timing, time_source))
     if args.markdown:
         args.markdown.parent.mkdir(parents=True, exist_ok=True)
         args.markdown.write_text(
-            markdown_report(args.csv_path, fields, samples, steps, plateaus, spikes, timing),
+            markdown_report(args.csv_path, fields, samples, steps, plateaus, spikes, timing, time_source),
             encoding="utf-8",
         )
         print(f"\nMarkdown report written: {args.markdown.as_posix()}")
