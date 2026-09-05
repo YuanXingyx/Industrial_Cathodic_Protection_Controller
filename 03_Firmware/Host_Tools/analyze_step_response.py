@@ -30,7 +30,8 @@ REQUIRED_FIELDS = (
 )
 MCU_TICK_FIELD = "mcu_tick_ms"
 UINT32_MODULUS = 1 << 32
-
+MCU_RESET_BACKWARD_MS = 60_000
+MCU_RESET_NEW_TICK_MAX_MS = 10_000
 
 @dataclass(frozen=True)
 class Sample:
@@ -72,72 +73,214 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
+def detect_last_mcu_reset(rows: list[dict[str, str]]) -> tuple[int | None, int]:
+    """
+    Detect the latest obvious MCU reset in raw CSV rows.
 
-def load_samples(path: Path) -> tuple[list[Sample], list[str], str]:
+    A reset is treated as a large backward jump in mcu_tick_ms
+    where the new tick restarts near zero.
+
+    Returns:
+        reset_start_index:
+            Row index of the first sample after the latest reset,
+            or None if no reset is detected.
+        discarded_rows:
+            Number of rows before the selected post-reset segment.
+    """
+    if not rows or MCU_TICK_FIELD not in rows[0]:
+        return None, 0
+
+    ticks: list[int] = []
+
+    for index, row in enumerate(rows):
+        try:
+            tick = int(row[MCU_TICK_FIELD])
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"invalid MCU tick while checking reset at data row {index + 1}"
+            ) from exc
+
+        if not 0 <= tick < UINT32_MODULUS:
+            raise ValueError(
+                f"MCU tick outside uint32 range at data row {index + 1}"
+            )
+
+        ticks.append(tick)
+
+    reset_indices: list[int] = []
+
+    for index in range(1, len(ticks)):
+        previous_tick = ticks[index - 1]
+        current_tick = ticks[index]
+
+        if current_tick < previous_tick:
+            backward_jump = previous_tick - current_tick
+            # Very large backward jump is normal uint32 rollover,
+             # not an MCU reset.
+            is_uint32_rollover = backward_jump > UINT32_MODULUS // 2
+
+            if (
+                    not is_uint32_rollover
+                    and backward_jump >= MCU_RESET_BACKWARD_MS
+                    and current_tick <= MCU_RESET_NEW_TICK_MAX_MS
+            ):
+                reset_indices.append(index)
+
+    if not reset_indices:
+        return None, 0
+
+    start_index = reset_indices[-1]
+
+    return start_index, start_index
+
+
+def load_samples(
+    path: Path,
+) -> tuple[list[Sample], list[str], str, bool, int]:
     with path.open("r", newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
         fields = reader.fieldnames or []
-        missing = [field for field in REQUIRED_FIELDS if field not in fields]
-        if missing:
-            raise ValueError(f"missing required CSV fields: {', '.join(missing)}")
 
-        use_mcu_tick = MCU_TICK_FIELD in fields
-        samples: list[Sample] = []
-        first_unwrapped_tick: int | None = None
-        previous_tick: int | None = None
-        tick_epoch = 0
-        for line_number, row in enumerate(reader, start=2):
-            try:
-                values = [float(row[field]) for field in REQUIRED_FIELDS]
-            except (TypeError, ValueError) as exc:
-                raise ValueError(f"invalid numeric value at CSV line {line_number}") from exc
-            if not all(math.isfinite(value) for value in values):
-                raise ValueError(f"non-finite numeric value at CSV line {line_number}")
-            host_time_s = float(row["time_s"])
-            mcu_tick_ms: int | None = None
-            analysis_time_s = host_time_s
-            if use_mcu_tick:
-                try:
-                    mcu_tick_ms = int(row[MCU_TICK_FIELD])
-                except (TypeError, ValueError) as exc:
-                    raise ValueError(f"invalid MCU tick at CSV line {line_number}") from exc
-                if not 0 <= mcu_tick_ms < UINT32_MODULUS:
-                    raise ValueError(f"MCU tick outside uint32 range at CSV line {line_number}")
-                if previous_tick is not None and mcu_tick_ms < previous_tick:
-                    if previous_tick - mcu_tick_ms > UINT32_MODULUS // 2:
-                        tick_epoch += UINT32_MODULUS
-                    else:
-                        raise ValueError(f"MCU tick moved backward at CSV line {line_number}")
-                unwrapped_tick = tick_epoch + mcu_tick_ms
-                if first_unwrapped_tick is None:
-                    first_unwrapped_tick = unwrapped_tick
-                analysis_time_s = (unwrapped_tick - first_unwrapped_tick) / 1000.0
-                previous_tick = mcu_tick_ms
-            samples.append(
-                Sample(
-                    host_time_s=host_time_s,
-                    time_s=analysis_time_s,
-                    mcu_tick_ms=mcu_tick_ms,
-                    adc=float(row["adc"]),
-                    target=int(row["target"]),
-                    integral=float(row["integral"]),
-                    error=float(row["error"]),
-                    kp=float(row["kp"]),
-                    ki=float(row["ki"]),
-                    output_x100=float(row["output_x100"]),
-                    duty=float(row["duty"]),
-                )
+        missing = [
+            field for field in REQUIRED_FIELDS
+            if field not in fields
+        ]
+        if missing:
+            raise ValueError(
+                f"missing required CSV fields: {', '.join(missing)}"
             )
 
-    if not samples:
+        raw_rows = list(reader)
+
+    if not raw_rows:
         raise ValueError("CSV contains no data rows")
-    if any(current.host_time_s <= previous.host_time_s for previous, current in zip(samples, samples[1:])):
+
+    use_mcu_tick = MCU_TICK_FIELD in fields
+
+    reset_detected = False
+    discarded_rows = 0
+
+    # 如果有 MCU tick，先检查是否发生 MCU reset
+    if use_mcu_tick:
+        reset_start_index, discarded_rows = detect_last_mcu_reset(raw_rows)
+
+        if reset_start_index is not None:
+            reset_detected = True
+            raw_rows = raw_rows[reset_start_index:]
+
+    samples: list[Sample] = []
+
+    first_unwrapped_tick: int | None = None
+    previous_tick: int | None = None
+    tick_epoch = 0
+
+    for data_index, row in enumerate(raw_rows):
+        # +2: CSV header 占第1行，第一条数据从第2行开始
+        # +discarded_rows: 保留原始 CSV 行号语义
+        line_number = data_index + 2 + discarded_rows
+
+        try:
+            values = [
+                float(row[field])
+                for field in REQUIRED_FIELDS
+            ]
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"invalid numeric value at CSV line {line_number}"
+            ) from exc
+
+        if not all(math.isfinite(value) for value in values):
+            raise ValueError(
+                f"non-finite numeric value at CSV line {line_number}"
+            )
+
+        host_time_s = float(row["time_s"])
+
+        mcu_tick_ms: int | None = None
+        analysis_time_s = host_time_s
+
+        if use_mcu_tick:
+            try:
+                mcu_tick_ms = int(row[MCU_TICK_FIELD])
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"invalid MCU tick at CSV line {line_number}"
+                ) from exc
+
+            if not 0 <= mcu_tick_ms < UINT32_MODULUS:
+                raise ValueError(
+                    f"MCU tick outside uint32 range at CSV line {line_number}"
+                )
+
+            # reset 已经在前面切段掉了。
+            # 这里剩余的向后跳，只允许正常 uint32 rollover。
+            if previous_tick is not None and mcu_tick_ms < previous_tick:
+                if previous_tick - mcu_tick_ms > UINT32_MODULUS // 2:
+                    tick_epoch += UINT32_MODULUS
+                else:
+                    raise ValueError(
+                        f"MCU tick moved backward at CSV line {line_number}"
+                    )
+
+            unwrapped_tick = tick_epoch + mcu_tick_ms
+
+            if first_unwrapped_tick is None:
+                first_unwrapped_tick = unwrapped_tick
+
+            analysis_time_s = (
+                unwrapped_tick - first_unwrapped_tick
+            ) / 1000.0
+
+            previous_tick = mcu_tick_ms
+
+        samples.append(
+            Sample(
+                host_time_s=host_time_s,
+                time_s=analysis_time_s,
+                mcu_tick_ms=mcu_tick_ms,
+                adc=float(row["adc"]),
+                target=int(row["target"]),
+                integral=float(row["integral"]),
+                error=float(row["error"]),
+                kp=float(row["kp"]),
+                ki=float(row["ki"]),
+                output_x100=float(row["output_x100"]),
+                duty=float(row["duty"]),
+            )
+        )
+
+    if not samples:
+        raise ValueError("CSV contains no usable data rows")
+
+    if any(
+        current.host_time_s <= previous.host_time_s
+        for previous, current in zip(samples, samples[1:])
+    ):
         raise ValueError("host time_s must be strictly increasing")
-    if any(current.time_s <= previous.time_s for previous, current in zip(samples, samples[1:])):
-        raise ValueError("selected analysis time must be strictly increasing")
-    if any(sample.error != sample.target - sample.adc for sample in samples):
-        raise ValueError("logged error is inconsistent with target - adc")
-    return samples, fields, "MCU TICK" if use_mcu_tick else "Host time_s"
+
+    if any(
+        current.time_s <= previous.time_s
+        for previous, current in zip(samples, samples[1:])
+    ):
+        raise ValueError(
+            "selected analysis time must be strictly increasing"
+        )
+
+    if any(
+        sample.error != sample.target - sample.adc
+        for sample in samples
+    ):
+        raise ValueError(
+            "logged error is inconsistent with target - adc"
+        )
+
+    return (
+        samples,
+        fields,
+        "MCU TICK" if use_mcu_tick else "Host time_s",
+        reset_detected,
+        discarded_rows,
+    )
 
 
 def find_plateaus(samples: Sequence[Sample]) -> list[Plateau]:
@@ -264,6 +407,21 @@ def analyze_timing(samples: Sequence[Sample]) -> dict[str, float | int]:
     }
 
 
+def analyze_control_stats(samples: Sequence[Sample]) -> dict[str, float]:
+    integrals = [sample.integral for sample in samples]
+    outputs = [sample.output_x100 / 100.0 for sample in samples]
+    duties = [sample.duty for sample in samples]
+
+    return {
+        "integral_min": min(integrals),
+        "integral_max": max(integrals),
+        "output_min": min(outputs),
+        "output_max": max(outputs),
+        "duty_min": min(duties),
+        "duty_max": max(duties),
+    }
+
+
 def terminal_report(
     path: Path,
     fields: Sequence[str],
@@ -272,15 +430,20 @@ def terminal_report(
     plateaus: Sequence[dict[str, object]],
     spikes: dict[str, float | int],
     timing: dict[str, float | int],
+    control_stats: dict[str, float],
     time_source: str,
+    reset_detected: bool,
+    discarded_rows: int,
 ) -> str:
     lines = [
-        f"Source: {path.as_posix()}",
-        f"Rows: {len(samples)}",
-        f"Fields: {', '.join(fields)}",
-        f"Time source: {time_source}",
-        "",
-    ]
+    f"Source: {path.as_posix()}",
+    f"Rows: {len(samples)}",
+    f"Fields: {', '.join(fields)}",
+    f"Detected MCU reset: {'yes' if reset_detected else 'no'}",
+    f"Discarded pre-reset rows: {discarded_rows}",
+    f"Time source: {time_source}",
+    "",
+]
     for step in steps:
         settled = step["settling_time"]
         settling_text = "Not Settled" if settled is None else f"{settled:.3f} s"
@@ -319,19 +482,24 @@ def terminal_report(
             ]
         )
     lines.extend(
-        [
-            "=== Timestamp Quality ===",
-            f"Interval min / median / mean / max: {timing['minimum']:.6f} / {timing['median']:.6f} / {timing['mean']:.6f} / {timing['maximum']:.6f} s",
-            f"Intervals below 50 ms: {timing['below_50_ms']}",
-            f"Intervals at least 200 ms: {timing['at_least_200_ms']}",
-            f"Intervals use the selected analysis time source: {time_source}.",
-            "",
-            "=== Exploratory Spike Metric ===",
-            f"Candidates: {spikes['count']} / {spikes['assessed']} ({spikes['percentage']:.3f}%)",
-            f"Definition: abs(adc - centered rolling median[{SPIKE_WINDOW}]) > {SPIKE_THRESHOLD:.0f} counts",
-            "Exploratory only; threshold is not an industrial acceptance criterion.",
-        ]
-    )
+    [
+        "=== Controller Statistics ===",
+        f"Integral min / max: {control_stats['integral_min']:.0f} / {control_stats['integral_max']:.0f}",
+        f"Output min / max: {control_stats['output_min']:.2f}% / {control_stats['output_max']:.2f}%",
+        f"Duty min / max: {control_stats['duty_min']:.0f}% / {control_stats['duty_max']:.0f}%",
+        "",
+        "=== Timestamp Quality ===",
+        f"Interval min / median / mean / max: {timing['minimum']:.6f} / {timing['median']:.6f} / {timing['mean']:.6f} / {timing['maximum']:.6f} s",
+        f"Intervals below 50 ms: {timing['below_50_ms']}",
+        f"Intervals at least 200 ms: {timing['at_least_200_ms']}",
+        f"Intervals use the selected analysis time source: {time_source}.",
+        "",
+        "=== Exploratory Spike Metric ===",
+        f"Candidates: {spikes['count']} / {spikes['assessed']} ({spikes['percentage']:.3f}%)",
+        f"Definition: abs(adc - centered rolling median[{SPIKE_WINDOW}]) > {SPIKE_THRESHOLD:.0f} counts",
+        "Exploratory only; threshold is not an industrial acceptance criterion.",
+    ]
+)
     return "\n".join(lines)
 
 
@@ -437,22 +605,59 @@ def markdown_report(
 
 def main() -> int:
     args = parse_args()
-    samples, fields, time_source = load_samples(args.csv_path)
+
+    samples, fields, time_source, reset_detected, discarded_rows = load_samples(
+        args.csv_path
+    )
+
     plateau_ranges = find_plateaus(samples)
+
     if len(plateau_ranges) < 2:
         raise ValueError("no target steps detected")
+
     steps = analyze_steps(samples, plateau_ranges)
     plateaus = analyze_plateaus(samples, plateau_ranges)
     spikes = analyze_spikes(samples)
     timing = analyze_timing(samples)
-    print(terminal_report(args.csv_path, fields, samples, steps, plateaus, spikes, timing, time_source))
+
+    # 新增：统计 integral / output / duty 范围
+    control_stats = analyze_control_stats(samples)
+
+    print(
+        terminal_report(
+            args.csv_path,
+            fields,
+            samples,
+            steps,
+            plateaus,
+            spikes,
+            timing,
+            control_stats,     # 新增这一项
+            time_source,
+            reset_detected,
+            discarded_rows,
+        )
+    )
+
     if args.markdown:
         args.markdown.parent.mkdir(parents=True, exist_ok=True)
+
         args.markdown.write_text(
-            markdown_report(args.csv_path, fields, samples, steps, plateaus, spikes, timing, time_source),
+            markdown_report(
+                args.csv_path,
+                fields,
+                samples,
+                steps,
+                plateaus,
+                spikes,
+                timing,
+                time_source,
+            ),
             encoding="utf-8",
         )
+
         print(f"\nMarkdown report written: {args.markdown.as_posix()}")
+
     return 0
 
 
